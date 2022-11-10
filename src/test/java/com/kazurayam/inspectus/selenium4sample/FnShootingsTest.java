@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -65,7 +66,7 @@ public class FnShootingsTest {
 
 
     @Test
-    void testMaterializing() throws InspectusException {
+    void testMaterialize() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
                 .store(Stores.newInstance(testClassOutputDir.resolve("store")))
                 .jobName(new JobName("testMaterializing"))
@@ -90,6 +91,7 @@ public class FnShootingsTest {
         JobTimestamp jobTimestamp = p.getJobTimestamp();
         // visit the target
         String urlStr = "https://duckduckgo.com/";
+        URL url = makeURL(urlStr);
         driver.get(urlStr);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
@@ -99,28 +101,58 @@ public class FnShootingsTest {
         WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(3));
         w.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//input[@name='q']")));
-        // take the 1st screenshot
-        Material mt = takePageScreenshotWriteIntoStore(driver, urlStr,
-                store, jobName, jobTimestamp);
-        assertNotNull(mt);
-        assertNotEquals(Material.NULL_OBJECT, mt);
+        // take the 1st screenshot of the blank search page
+        Metadata md1 = Metadata.builder(url).put("step", "01").build();
+        Material mt1 = takePageScreenshotWriteIntoStore(driver,
+                store, jobName, jobTimestamp, md1);
+        assertNotNull(mt1);
+        assertNotEquals(Material.NULL_OBJECT, mt1);
+
+        // type a keyword "selenium" in the <input> element, then
+        // take the 2nd screenshot
+        driver.findElement(By.xpath("//input[@name='q']"))
+                .sendKeys("selenium");
+        Metadata md2 = Metadata.builder(url).put("step", "02").build();
+        Material mt2 = takePageScreenshotWriteIntoStore(driver,
+                store, jobName, jobTimestamp, md2);
+        assertNotNull(mt2);
+        assertNotEquals(Material.NULL_OBJECT, mt2);
+
+        // send ENTER, wait for the search result page to be loaded,
+        driver.findElement(By.xpath("//input[@name='q']"))
+                .sendKeys(Keys.RETURN);
+        WebDriverWait w2 = new WebDriverWait(driver, Duration.ofSeconds(3));
+        w2.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//input[@name='q' and @value='selenium']")));
+
+        // take the 3rd screenshot
+        Metadata md3 = Metadata.builder(url).put("step", "03").build();
+        Material mt3 = takePageScreenshotWriteIntoStore(driver,
+                store, jobName, jobTimestamp, md3);
+        assertNotNull(mt3);
+        assertNotEquals(Material.NULL_OBJECT, mt3);
+
+        // done all, exit the Function returning a Intermediate object
         return Intermediates.NULL_OBJECT;
     };
 
+    private URL makeURL(String urlStr) {
+        try {
+            return new URL(urlStr);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    private Material takePageScreenshotWriteIntoStore(
-            WebDriver driver, String urlStr,
-            Store store, JobName jobName, JobTimestamp jobTimestamp) {
+    private Material takePageScreenshotWriteIntoStore(WebDriver driver,
+            Store store, JobName jobName, JobTimestamp jobTimestamp, Metadata md) {
         try {
             BufferedImage bi = AShotWrapper.takeEntirePageImage(driver,
                     new AShotWrapper.Options.Builder().build());
             assertNotNull(bi);
-            URL url;
-            url = new URL(urlStr);
-            Metadata md = new Metadata.Builder(url).build();
             Material mt = store.write(jobName, jobTimestamp, FileType.PNG, md, bi);
             return mt;
-        } catch (MalformedURLException | MaterialstoreException e) {
+        } catch (MaterialstoreException e) {
             throw new RuntimeException(e);
         }
     }
