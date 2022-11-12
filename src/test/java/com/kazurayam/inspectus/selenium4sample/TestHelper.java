@@ -1,17 +1,34 @@
 package com.kazurayam.inspectus.selenium4sample;
 
 
+import com.kazurayam.ashotwrapper.AShotWrapper;
+import com.kazurayam.materialstore.core.filesystem.FileType;
+import com.kazurayam.materialstore.core.filesystem.JobName;
+import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
+import com.kazurayam.materialstore.core.filesystem.Material;
+import com.kazurayam.materialstore.core.filesystem.MaterialstoreException;
+import com.kazurayam.materialstore.core.filesystem.Metadata;
+import com.kazurayam.materialstore.core.filesystem.Store;
 import com.kazurayam.materialstore.core.util.CopyDir;
 import com.kazurayam.materialstore.core.util.DeleteDir;
 
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestHelper {
 
@@ -87,4 +104,33 @@ public class TestHelper {
         }
         return output;
     }
+
+    public static URL makeURL(String urlStr) {
+        try {
+            return new URL(urlStr);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Material takePageScreenshotSaveIntoStore(
+            WebDriver driver,
+            Store store, JobName jobName, JobTimestamp jobTimestamp, Metadata md) {
+        try {
+            /*
+            BufferedImage bi = AShotWrapper.takeEntirePageImage(driver,
+                    new AShotWrapper.Options.Builder().build());
+            assertNotNull(bi);
+            Material mt = store.write(jobName, jobTimestamp, FileType.PNG, md, bi);
+            return mt;
+             */
+            TakesScreenshot shooter = (TakesScreenshot)driver;
+            byte[] bytes = shooter.getScreenshotAs(OutputType.BYTES);
+            Material mt = store.write(jobName, jobTimestamp, FileType.PNG, md, bytes);
+            return mt;
+        } catch (MaterialstoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

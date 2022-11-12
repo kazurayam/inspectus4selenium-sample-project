@@ -1,16 +1,13 @@
 package com.kazurayam.inspectus.selenium4sample;
 
-import com.kazurayam.ashotwrapper.AShotWrapper;
-import com.kazurayam.inspectus.core.FnShootings;
 import com.kazurayam.inspectus.core.Inspectus;
 import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
-import com.kazurayam.materialstore.core.filesystem.FileType;
+import com.kazurayam.inspectus.fn.FnShootings;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.Material;
-import com.kazurayam.materialstore.core.filesystem.MaterialstoreException;
 import com.kazurayam.materialstore.core.filesystem.Metadata;
 import com.kazurayam.materialstore.core.filesystem.SortKeys;
 import com.kazurayam.materialstore.core.filesystem.Store;
@@ -29,8 +26,6 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.awt.image.BufferedImage;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -40,6 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Using Selenium, open a browser to visit the DuckDuckGo site.
+ * Take 3 screenshots to store images into the store.
+ * Will compile a Shootings report in HTML.
+ */
 public class FnShootingsTest {
 
     private Path testClassOutputDir;
@@ -52,11 +52,11 @@ public class FnShootingsTest {
 
     @BeforeEach
     public void setup() {
+        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
+        //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         driver = new ChromeDriver(opt);
-        //
-        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
     }
 
     @AfterEach
@@ -69,7 +69,7 @@ public class FnShootingsTest {
     void testMaterialize() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
                 .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                .jobName(new JobName("testMaterializing"))
+                .jobName(new JobName("testMaterialize"))
                 .jobTimestamp(JobTimestamp.now())
                 .sortKeys(new SortKeys("step"))
                 .build();
@@ -78,7 +78,7 @@ public class FnShootingsTest {
     }
 
     /**
-     * We will visit the seach engine https://duckduckgo.co/ ,
+     * We will visit the search engine https://duckduckgo.co/ ,
      * make a query for keyword "selenium".
      * We will take full page screenshots and turn them into PNG images,
      * then write 3 material objects into the store.
@@ -91,7 +91,7 @@ public class FnShootingsTest {
         JobTimestamp jobTimestamp = p.getJobTimestamp();
         // visit the target
         String urlStr = "https://duckduckgo.com/";
-        URL url = makeURL(urlStr);
+        URL url = TestHelper.makeURL(urlStr);
         driver.get(urlStr);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
@@ -103,7 +103,7 @@ public class FnShootingsTest {
                 By.xpath("//input[@name='q']")));
         // take the 1st screenshot of the blank search page
         Metadata md1 = Metadata.builder(url).put("step", "01").build();
-        Material mt1 = takePageScreenshotWriteIntoStore(driver,
+        Material mt1 = TestHelper.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md1);
         assertNotNull(mt1);
         assertNotEquals(Material.NULL_OBJECT, mt1);
@@ -113,7 +113,7 @@ public class FnShootingsTest {
         driver.findElement(By.xpath("//input[@name='q']"))
                 .sendKeys("selenium");
         Metadata md2 = Metadata.builder(url).put("step", "02").build();
-        Material mt2 = takePageScreenshotWriteIntoStore(driver,
+        Material mt2 = TestHelper.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md2);
         assertNotNull(mt2);
         assertNotEquals(Material.NULL_OBJECT, mt2);
@@ -127,7 +127,7 @@ public class FnShootingsTest {
 
         // take the 3rd screenshot
         Metadata md3 = Metadata.builder(url).put("step", "03").build();
-        Material mt3 = takePageScreenshotWriteIntoStore(driver,
+        Material mt3 = TestHelper.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md3);
         assertNotNull(mt3);
         assertNotEquals(Material.NULL_OBJECT, mt3);
@@ -135,25 +135,4 @@ public class FnShootingsTest {
         // done all, exit the Function returning a Intermediate object
         return Intermediates.NULL_OBJECT;
     };
-
-    private URL makeURL(String urlStr) {
-        try {
-            return new URL(urlStr);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Material takePageScreenshotWriteIntoStore(WebDriver driver,
-            Store store, JobName jobName, JobTimestamp jobTimestamp, Metadata md) {
-        try {
-            BufferedImage bi = AShotWrapper.takeEntirePageImage(driver,
-                    new AShotWrapper.Options.Builder().build());
-            assertNotNull(bi);
-            Material mt = store.write(jobName, jobTimestamp, FileType.PNG, md, bi);
-            return mt;
-        } catch (MaterialstoreException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
