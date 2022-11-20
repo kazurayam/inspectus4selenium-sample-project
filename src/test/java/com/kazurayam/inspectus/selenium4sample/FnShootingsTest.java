@@ -66,7 +66,7 @@ public class FnShootingsTest {
 
 
     @Test
-    void testMaterialize() throws InspectusException {
+    void performShootings() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
                 .store(Stores.newInstance(testClassOutputDir.resolve("store")))
                 .jobName(new JobName("testMaterialize"))
