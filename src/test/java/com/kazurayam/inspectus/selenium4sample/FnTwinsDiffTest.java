@@ -43,11 +43,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Using Selenium open a browser to visit 2 URL;
- * one is a pseudo Projection environment,
- * another is a pseudo Development environment.
- * Take screenshots of 2 URL and compare the images
- * to compile HTML report.
+ * Using Selenium open a browser to visit a pair of
+ * web site (Environments). Each web site contains
+ * multiple URLs.
+ * Take screenshots of 2 web sites and compare the images
+ * to compile a HTML report.
  */
 public class FnTwinsDiffTest {
 
@@ -68,6 +68,8 @@ public class FnTwinsDiffTest {
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         driver = new ChromeDriver(opt);
+        driver.manage().window().setSize(new Dimension(1024, 1000));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
     }
 
     @AfterEach
@@ -76,10 +78,10 @@ public class FnTwinsDiffTest {
     }
 
     @Test
-    void performTwinsDiff() throws InspectusException {
+    public void performTwinsDiff() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
                 .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                .jobName(new JobName("testMaterialize"))
+                .jobName(new JobName("performTwinsDiff"))
                 .jobTimestamp(JobTimestamp.now())
                 .ignoreMetadataKeys(
                         new IgnoreMetadataKeys.Builder()
@@ -97,11 +99,11 @@ public class FnTwinsDiffTest {
 
 
     /*
-     * Internally invoked by the FnTwinsDiff#execute().
+     * I
+     * invoked by the FnTwinsDiff#execute() internally.
      *
      */
-    private final Function<Parameters, Intermediates> fn =
-            (p) -> {
+    private final Function<Parameters, Intermediates> fn = (p) -> {
         assert p.getEnvironment() != Environment.NULL_OBJECT : "p.Environment() must not be null";
         Environment env = p.getEnvironment();
         try {
@@ -121,7 +123,7 @@ public class FnTwinsDiffTest {
             // process the targets
             for (int i = 0; i < targetList.size(); i++) {
                 Target target = targetList.get(i);
-                processTarget(p, jobTimestamp, target.getUrl(), target.getBy(),
+                processTarget(p, jobTimestamp, target.getUrl(), target.getHandle(),
                         env, String.format("%02d", i + 1));
             }
         } catch (InspectusException e) {
@@ -134,8 +136,6 @@ public class FnTwinsDiffTest {
                             URL url, By handle,
                             Environment environment, String step) {
         driver.get(url.toExternalForm());
-        driver.manage().window().setSize(new Dimension(1024, 1000));
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
         WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(3));
         w.until(ExpectedConditions.presenceOfElementLocated(handle));
         Metadata md = Metadata.builder(url)

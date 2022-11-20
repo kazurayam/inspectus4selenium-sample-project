@@ -57,6 +57,8 @@ public class FnShootingsTest {
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         driver = new ChromeDriver(opt);
+        driver.manage().window().setSize(new Dimension(1024, 1000));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
     }
 
     @AfterEach
@@ -93,8 +95,6 @@ public class FnShootingsTest {
         String urlStr = "https://duckduckgo.com/";
         URL url = TestHelper.makeURL(urlStr);
         driver.get(urlStr);
-        driver.manage().window().setSize(new Dimension(1024, 1000));
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
         String title = driver.getTitle();
         assertTrue(title.contains("DuckDuckGo"));
         // explicitly wait for <input name="q">
