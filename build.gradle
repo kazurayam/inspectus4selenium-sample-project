@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.kazurayam'
-version '0.1.2-SNAPSHOT'
+version '0.1.2'
 
 repositories {
     mavenCentral()
@@ -11,12 +11,13 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.kazurayam:inspectus:0.5.5'
+    implementation 'com.kazurayam:materialstore:0.12.5'
+
     implementation 'org.slf4j:slf4j-api:2.0.3'
     testImplementation 'org.slf4j:slf4j-simple:2.0.3'
-    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.6.0'
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.6.0'
     testImplementation "io.github.bonigarcia:webdrivermanager:5.3.1"
-    testImplementation 'com.kazurayam:inspectus:0.5.5-SNAPSHOT'
-    testImplementation 'com.kazurayam:materialstore:0.12.5-SNAPSHOT'
     testImplementation group: 'com.kazurayam', name: 'subprocessj', version: '0.3.4'
     testImplementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
     testImplementation group: 'io.github.java-diff-utils', name: 'java-diff-utils', version: '4.11'

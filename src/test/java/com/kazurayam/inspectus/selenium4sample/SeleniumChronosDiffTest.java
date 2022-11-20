@@ -28,6 +28,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.Select;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -46,7 +48,9 @@ import java.util.function.Function;
  * compare the products of the previous run and the current run,
  * generates a diff information, and compile a HTML report.
  */
-public class FnChronosDiffTest {
+public class SeleniumChronosDiffTest {
+
+    private Logger logger = LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
 
     private Path testClassOutputDir;
     private WebDriver driver;
@@ -60,7 +64,7 @@ public class FnChronosDiffTest {
         testClassOutputDir = TestHelper.createTestClassOutputDir(this);
         //
         ChromeOptions opt = new ChromeOptions();
-        //opt.addArguments("headless");
+        opt.addArguments("headless");
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         // we will implicitly wait 5 seconds for the new page to load
@@ -74,15 +78,33 @@ public class FnChronosDiffTest {
 
     @Test
     public void performChronosDiff() throws InspectusException {
-        Parameters parameters = new Parameters.Builder()
-                .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                .jobName(new JobName("performChronosDiff"))
-                .jobTimestamp(JobTimestamp.now())
-                .sortKeys(new SortKeys("step"))
-                .threshold(1.0)
-                .build();
-        Inspectus chronosDiff = new FnChronosDiff(fn);
-        chronosDiff.execute(parameters);
+        try {
+            Parameters parameters = new Parameters.Builder()
+                    .store(Stores.newInstance(testClassOutputDir.resolve("store")))
+                    .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                    .jobName(new JobName("performChronosDiff"))
+                    .jobTimestamp(JobTimestamp.now())
+                    .sortKeys(new SortKeys("step"))
+                    .threshold(1.0)
+                    .build();
+            Inspectus chronosDiff = new FnChronosDiff(fn);
+            chronosDiff.execute(parameters);
+        } catch (InspectusException e) {
+            if (e.getMessage().contains("previousMaterialList of size == 0")) {
+                logger.warn("chronosDiff.execute() failed because the backup-store was empty. Will try again.");
+                // do it once more with new JobTimestamp
+                Parameters parameters = new Parameters.Builder()
+                        .store(Stores.newInstance(testClassOutputDir.resolve("store")))
+                        .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                        .jobName(new JobName("performChronosDiff"))
+                        .jobTimestamp(JobTimestamp.now())
+                        .sortKeys(new SortKeys("step"))
+                        .threshold(1.0)
+                        .build();
+                Inspectus chronosDiff = new FnChronosDiff(fn);
+                chronosDiff.execute(parameters);
+            }
+        }
     }
 
     /*

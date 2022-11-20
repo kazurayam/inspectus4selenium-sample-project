@@ -5,6 +5,8 @@ import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.fn.FnShootings;
+import com.kazurayam.inspectus.materialize.MaterializeUtils;
+import com.kazurayam.inspectus.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.Material;
@@ -23,8 +25,6 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -40,10 +40,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Take 3 screenshots to store images into the store.
  * Will compile a Shootings report in HTML.
  */
-public class FnShootingsTest {
+public class SeleniumShootingsTest {
 
     private Path testClassOutputDir;
     private WebDriver driver;
+    private WebDriverFormulas wdf;
 
     @BeforeAll
     static void setupClass() {
@@ -59,6 +60,8 @@ public class FnShootingsTest {
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        //
+        wdf = new WebDriverFormulas();
     }
 
     @AfterEach
@@ -97,37 +100,34 @@ public class FnShootingsTest {
         driver.get(urlStr);
         String title = driver.getTitle();
         assertTrue(title.contains("DuckDuckGo"));
+
         // explicitly wait for <input name="q">
-        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(3));
-        w.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//input[@name='q']")));
+        By inputQ = By.xpath("//input[@name='q']");
+        wdf.waitForElementPresent(driver,inputQ, 3);
         // take the 1st screenshot of the blank search page
         Metadata md1 = Metadata.builder(url).put("step", "01").build();
-        Material mt1 = TestHelper.takePageScreenshotSaveIntoStore(driver,
+        Material mt1 = MaterializeUtils.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md1);
         assertNotNull(mt1);
         assertNotEquals(Material.NULL_OBJECT, mt1);
 
         // type a keyword "selenium" in the <input> element, then
         // take the 2nd screenshot
-        driver.findElement(By.xpath("//input[@name='q']"))
-                .sendKeys("selenium");
+        driver.findElement(inputQ).sendKeys("selenium");
         Metadata md2 = Metadata.builder(url).put("step", "02").build();
-        Material mt2 = TestHelper.takePageScreenshotSaveIntoStore(driver,
+        Material mt2 = MaterializeUtils.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md2);
         assertNotNull(mt2);
         assertNotEquals(Material.NULL_OBJECT, mt2);
 
         // send ENTER, wait for the search result page to be loaded,
-        driver.findElement(By.xpath("//input[@name='q']"))
-                .sendKeys(Keys.RETURN);
-        WebDriverWait w2 = new WebDriverWait(driver, Duration.ofSeconds(3));
-        w2.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//input[@name='q' and @value='selenium']")));
+        driver.findElement(inputQ).sendKeys(Keys.RETURN);
+        By inputQSelenium = By.xpath("//input[@name='q' and @value='selenium']");
+        wdf.waitForElementPresent(driver, inputQSelenium, 3);
 
         // take the 3rd screenshot
         Metadata md3 = Metadata.builder(url).put("step", "03").build();
-        Material mt3 = TestHelper.takePageScreenshotSaveIntoStore(driver,
+        Material mt3 = MaterializeUtils.takePageScreenshotSaveIntoStore(driver,
                 store, jobName, jobTimestamp, md3);
         assertNotNull(mt3);
         assertNotEquals(Material.NULL_OBJECT, mt3);

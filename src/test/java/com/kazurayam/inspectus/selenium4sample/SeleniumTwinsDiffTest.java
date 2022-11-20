@@ -7,6 +7,8 @@ import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnTwinsDiff;
+import com.kazurayam.inspectus.materialize.MaterializeUtils;
+import com.kazurayam.inspectus.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.base.materialize.Target;
 import com.kazurayam.materialstore.base.materialize.TargetCSVParser;
 import com.kazurayam.materialstore.core.filesystem.JobName;
@@ -27,8 +29,6 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -49,10 +49,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Take screenshots of 2 web sites and compare the images
  * to compile a HTML report.
  */
-public class FnTwinsDiffTest {
+public class SeleniumTwinsDiffTest {
 
     private Path testClassOutputDir;
     private WebDriver driver;
+    private WebDriverFormulas wdf;
     private Path fixturesDir;
 
     @BeforeAll
@@ -70,6 +71,8 @@ public class FnTwinsDiffTest {
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        //
+        wdf = new WebDriverFormulas();
     }
 
     @AfterEach
@@ -136,13 +139,12 @@ public class FnTwinsDiffTest {
                             URL url, By handle,
                             Environment environment, String step) {
         driver.get(url.toExternalForm());
-        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(3));
-        w.until(ExpectedConditions.presenceOfElementLocated(handle));
+        wdf.waitForElementPresent(driver, handle, 3);
         Metadata md = Metadata.builder(url)
                 .put("environment", environment.toString())
                 .put("step", step)
                 .build();
-        Material mt = TestHelper.takePageScreenshotSaveIntoStore(driver,
+        Material mt = MaterializeUtils.takePageScreenshotSaveIntoStore(driver,
                 p.getStore(), p.getJobName(), jt, md);
         assertNotNull(mt);
         assertNotEquals(Material.NULL_OBJECT, mt);
