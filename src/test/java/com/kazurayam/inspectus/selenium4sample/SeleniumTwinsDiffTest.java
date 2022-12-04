@@ -7,7 +7,6 @@ import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnTwinsDiff;
-import com.kazurayam.inspectus.materialize.MaterializeUtils;
 import com.kazurayam.inspectus.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.base.materialize.Target;
 import com.kazurayam.materialstore.base.materialize.TargetCSVParser;

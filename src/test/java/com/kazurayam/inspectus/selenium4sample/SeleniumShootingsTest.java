@@ -5,7 +5,6 @@ import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.fn.FnShootings;
-import com.kazurayam.inspectus.materialize.MaterializeUtils;
 import com.kazurayam.inspectus.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
@@ -90,7 +89,7 @@ public class SeleniumShootingsTest {
      * We will put some metadata on the material objects.
      */
     private final Function<Parameters, Intermediates> fn = (p) -> {
-        // pick up the parameters
+        // pick up the parameter values
         Store store = p.getStore();
         JobName jobName = p.getJobName();
         JobTimestamp jobTimestamp = p.getJobTimestamp();

@@ -1,4 +1,4 @@
-package com.kazurayam.inspectus.materialize;
+package com.kazurayam.inspectus.selenium4sample;
 
 import com.kazurayam.materialstore.core.filesystem.FileType;
 import com.kazurayam.materialstore.core.filesystem.JobName;
