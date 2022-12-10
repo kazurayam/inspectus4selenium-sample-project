@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.kazurayam'
-version '0.1.3-SNAPSHOT'
+version '0.2.0'
 
 repositories {
     mavenCentral()
@@ -11,13 +11,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.kazurayam:inspectus:0.6.0'
-    implementation 'com.kazurayam:materialstore:0.13.1-SNAPSHOT'
-    implementation 'com.kazurayam:inspectus4selenium:0.2.0-SNAPSHOT'
+    implementation 'com.kazurayam:inspectus:0.7.2'
+    implementation 'org.slf4j:slf4j-api:2.0.5'
 
-    implementation 'org.slf4j:slf4j-api:2.0.3'
-    testImplementation 'org.slf4j:slf4j-simple:2.0.3'
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.6.0'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.5'
+    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.6.0'
     testImplementation "io.github.bonigarcia:webdrivermanager:5.3.1"
     testImplementation group: 'com.kazurayam', name: 'subprocessj', version: '0.3.4'
     testImplementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
@@ -28,6 +26,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }
 
-test {
+tasks.withType(Test) {
     useJUnitPlatform()
 }

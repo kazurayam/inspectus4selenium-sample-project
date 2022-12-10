@@ -1,0 +1,3 @@
+/index.html,By.xpath: //img[@alt='umineko']
+/repositories.html,By.xpath: //footer
+/proverbs.html,By.xpath: //footer

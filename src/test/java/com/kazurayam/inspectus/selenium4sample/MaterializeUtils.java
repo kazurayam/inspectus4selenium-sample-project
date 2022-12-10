@@ -10,7 +10,6 @@ import com.kazurayam.materialstore.core.filesystem.Store;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-
 public class MaterializeUtils {
 
     /**

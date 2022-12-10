@@ -6,10 +6,10 @@ import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnChronosDiff;
-import com.kazurayam.inspectus.selenium.WebDriverFormulas;
-import com.kazurayam.materialstore.base.materialize.MaterializingPageFunctions;
-import com.kazurayam.materialstore.base.materialize.StorageDirectory;
-import com.kazurayam.materialstore.base.materialize.Target;
+import com.kazurayam.inspectus.materialize.discovery.Handle;
+import com.kazurayam.inspectus.materialize.discovery.Target;
+import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
+import com.kazurayam.inspectus.materialize.selenium.WebPageMaterializingFunctions;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.MaterialstoreException;
@@ -50,8 +50,7 @@ import java.util.function.Function;
  */
 public class SeleniumChronosDiffTest {
 
-    private Logger logger = LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
-
+    private final Logger logger = LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
     private Path testClassOutputDir;
     private WebDriver driver;
     private WebDriverFormulas wdf;
@@ -61,7 +60,7 @@ public class SeleniumChronosDiffTest {
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
+        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumChronosDiffTest.class);
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
@@ -116,18 +115,23 @@ public class SeleniumChronosDiffTest {
             Store store = p.getStore();
             JobName jobName = p.getJobName();
             JobTimestamp jobTimestamp = p.getJobTimestamp();
-            StorageDirectory sd = new StorageDirectory(store, jobName, jobTimestamp);
+            WebPageMaterializingFunctions functions =
+                    new WebPageMaterializingFunctions(store, jobName, jobTimestamp);
 
             // step1: Top page
-            By anchorMakeAppointment = By.xpath("//a[@id='btn-make-appointment']");
+            Handle anchorMakeAppointment =
+                    new Handle(By.xpath("//a[@id='btn-make-appointment']"));
             Target topPage =
                     Target.builder("http://demoaut-mimic.kazurayam.com")
                             .handle(anchorMakeAppointment)
                             .build();
-            wdf.navigateTo(driver, topPage.getUrl(), topPage.getHandle(), 10);
-            materializeScreenshotAndSource(topPage, driver, sd, Collections.singletonMap("step", "01"));
+            wdf.navigateTo(driver, topPage.getUrl(), topPage.getHandle().getBy(), 10);
+            // take a screenshot, save the HTML source
+            takeScreenshotAndHTMLSource(functions, driver, topPage,
+                    Collections.singletonMap("step", "01"));
             // we navigate to the next page (login) with wait for the next page to load
-            wdf.navigateByClick(driver, anchorMakeAppointment, By.xpath("//input[@id='txt-username']"), 10);
+            wdf.navigateByClick(driver, anchorMakeAppointment.getBy(),
+                    By.xpath("//input[@id='txt-username']"), 10);
 
             // step2: Login page
             By inputUsername = By.xpath("//input[@id='txt-username']");
@@ -135,14 +139,16 @@ public class SeleniumChronosDiffTest {
             By buttonLogin = By.xpath("//button[@id='btn-login']");
             Target loginPage =
                     Target.builder(driver.getCurrentUrl())
-                            .handle(buttonLogin).build();
+                            .handle(new Handle(buttonLogin)).build();
             String username = "John Doe";
             String password = "ThisIsNotAPassword";
             driver.findElement(inputUsername).sendKeys(username);
             driver.findElement(inputPassword).sendKeys(password);
-            materializeScreenshotAndSource(loginPage, driver, sd, Collections.singletonMap("step", "02"));
+            takeScreenshotAndHTMLSource(functions, driver, loginPage,
+                    Collections.singletonMap("step", "02"));
             // we will navigate to the appointment page by
-            wdf.navigateByClick(driver, buttonLogin, By.xpath("//select[@id='combo_facility']"), 10);
+            wdf.navigateByClick(driver, buttonLogin,
+                    By.xpath("//select[@id='combo_facility']"), 10);
 
             // step3: Appointment page
             By comboFacility = By.xpath("//select[@id='combo_facility']");
@@ -153,7 +159,7 @@ public class SeleniumChronosDiffTest {
             By buttonBookAppointment = By.xpath("//button[@id='btn-book-appointment']");
             Target appointmentPage =
                     Target.builder(driver.getCurrentUrl())
-                            .handle(buttonBookAppointment).build();
+                            .handle(new Handle(buttonBookAppointment)).build();
             Select selectFacility = new Select(driver.findElement(comboFacility));
             selectFacility.selectByValue("Hongkong CURA Healthcare Center");
             driver.findElement(inputChk).click();
@@ -164,17 +170,21 @@ public class SeleniumChronosDiffTest {
             driver.findElement(inputVisitDate).sendKeys(visitDateStr);
             driver.findElement(inputVisitDate).sendKeys(Keys.chord(Keys.ENTER));
             driver.findElement(textareaComment).sendKeys("this is a comment");
-            materializeScreenshotAndSource(appointmentPage, driver, sd, Collections.singletonMap("step", "03"));
+            takeScreenshotAndHTMLSource(functions, driver, appointmentPage,
+                    Collections.singletonMap("step", "03"));
             // we navigate to the summary page by
-            wdf.navigateByClick(driver, buttonBookAppointment, By.xpath("//a[text()='Go to Homepage']"), 10);
+            wdf.navigateByClick(driver, buttonBookAppointment,
+                    By.xpath("//a[text()='Go to Homepage']"), 10);
 
             // Step4: Summary page
-            By anchorGoHome = By.xpath("//a[text()='Go to Homepage']");
+            Handle anchorGoHome = new Handle(By.xpath("//a[text()='Go to Homepage']"));
             Target summaryPage =
                     Target.builder(driver.getCurrentUrl()).handle(anchorGoHome).build();
-            materializeScreenshotAndSource(summaryPage, driver, sd, Collections.singletonMap("step", "04"));
+            takeScreenshotAndHTMLSource(functions, driver, summaryPage,
+                    Collections.singletonMap("step", "04"));
             // we navigate to the Home
-            wdf.navigateByClick(driver, anchorGoHome, By.xpath("//a[@id='btn-make-appointment']"), 10);
+            wdf.navigateByClick(driver, anchorGoHome.getBy(),
+                    By.xpath("//a[@id='btn-make-appointment']"), 10);
 
         } catch (Exception e) {
             throw new UncheckedInspectusException(e);
@@ -182,16 +192,14 @@ public class SeleniumChronosDiffTest {
         return Intermediates.NULL_OBJECT;
     };
 
-    private void materializeScreenshotAndSource(Target target,
-                                                WebDriver driver,
-                                                StorageDirectory sd,
-                                                Map<String, String> attributes)
+    private void takeScreenshotAndHTMLSource(WebPageMaterializingFunctions functions,
+                                             WebDriver driver,
+                                             Target target,
+                                             Map<String, String> attributes)
             throws MaterialstoreException {
         // take screenshot, save the image into the store
-        MaterializingPageFunctions
-                .storeEntirePageScreenshot.accept(target, driver, sd, attributes);
+        functions.storeEntirePageScreenshot.accept(driver, target, attributes);
         // take HTML source, save the text into the store
-        MaterializingPageFunctions
-                .storeHTMLSource.accept(target, driver, sd, attributes);
+        functions.storeHTMLSource.accept(driver, target, attributes);
     }
 }

@@ -5,7 +5,7 @@ import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.fn.FnShootings;
-import com.kazurayam.inspectus.selenium.WebDriverFormulas;
+import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.Material;
@@ -52,7 +52,7 @@ public class SeleniumShootingsTest {
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
+        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumShootingsTest.class);
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
