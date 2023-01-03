@@ -7,14 +7,13 @@ import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnTwinsDiff;
-import com.kazurayam.inspectus.materialize.MaterializeUtils;
-import com.kazurayam.inspectus.selenium.WebDriverFormulas;
-import com.kazurayam.materialstore.base.materialize.Target;
-import com.kazurayam.materialstore.base.materialize.TargetCSVParser;
+import com.kazurayam.inspectus.materialize.discovery.Sitemap;
+import com.kazurayam.inspectus.materialize.discovery.SitemapLoader;
+import com.kazurayam.inspectus.materialize.discovery.Target;
+import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.Material;
-import com.kazurayam.materialstore.core.filesystem.MaterialstoreException;
 import com.kazurayam.materialstore.core.filesystem.Metadata;
 import com.kazurayam.materialstore.core.filesystem.SortKeys;
 import com.kazurayam.materialstore.core.filesystem.Stores;
@@ -30,14 +29,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -63,7 +63,7 @@ public class SeleniumTwinsDiffTest {
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
+        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumTwinsDiffTest.class);
         fixturesDir = Paths.get(".").resolve("src/test/fixtures");
         //
         ChromeOptions opt = new ChromeOptions();
@@ -102,37 +102,41 @@ public class SeleniumTwinsDiffTest {
 
 
     /*
-     * I
      * invoked by the FnTwinsDiff#execute() internally.
-     *
      */
-    private final Function<Parameters, Intermediates> fn = (p) -> {
-        assert p.getEnvironment() != Environment.NULL_OBJECT : "p.Environment() must not be null";
-        Environment env = p.getEnvironment();
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+        assert parameters.getEnvironment() != Environment.NULL_OBJECT : "parameters.Environment() must not be null";
+        Environment env = parameters.getEnvironment();
+        Path dataDir = fixturesDir.resolve("FnTwinsDiffTest");
         try {
             List<Target> targetList;
             switch (env.toString()) {
                 case "ProductionEnv":
-                    targetList = getTargetList("targetList.Prod.csv", env);
+                    targetList =
+                            getTargetList(new URL("http://myadmin.kazurayam.com"),
+                                    dataDir.resolve("targetList.csv"));
                     break;
                 case "DevelopmentEnv":
-                    targetList = getTargetList("targetList.Dev.csv", env);
+                    targetList =
+                            getTargetList(new URL("http://devadmin.kazurayam.com"),
+                                    dataDir.resolve("targetList.csv"));
                     break;
                 default:
                     throw new UncheckedInspectusException(
                             String.format("unknown Environment env=%s", env));
             }
-            JobTimestamp jobTimestamp = p.getJobTimestamp();
+            JobTimestamp jobTimestamp = parameters.getJobTimestamp();
             // process the targets
             for (int i = 0; i < targetList.size(); i++) {
                 Target target = targetList.get(i);
-                processTarget(p, jobTimestamp, target.getUrl(), target.getHandle(),
+                processTarget(parameters, jobTimestamp, target.getUrl(),
+                        target.getHandle().getBy(),
                         env, String.format("%02d", i + 1));
             }
-        } catch (InspectusException e) {
+        } catch (MalformedURLException | InspectusException e) {
             throw new UncheckedInspectusException(e);
         }
-        return Intermediates.NULL_OBJECT;
+        return new Intermediates.Builder(intermediates).build();
     };
 
     private void processTarget(Parameters p, JobTimestamp jt,
@@ -154,20 +158,14 @@ public class SeleniumTwinsDiffTest {
      * read a CSV file located in the `src/test/fixtures/FnTwinsDiffTest` directory,
      * construct a list of Target objects which contains URLs to materialize.
      */
-    private List<Target> getTargetList(String csvName, Environment environment)
+    private List<Target> getTargetList(URL baseTopPageURL, Path targetFile)
             throws InspectusException {
-        Path dataDir = fixturesDir.resolve("FnTwinsDiffTest");
-        Path targetFile = dataDir.resolve(csvName);
         assert Files.exists(targetFile);
         //
-        TargetCSVParser parser = TargetCSVParser.newSimpleParser();
-        try {
-            return parser.parse(targetFile).stream()
-                            .map(t -> t.copyWith("profile", environment.toString()))
-                            .collect(Collectors.toList());
-        } catch (MaterialstoreException e) {
-            throw new InspectusException(e);
-        }
+        Target baseTopPage = Target.builder(baseTopPageURL).build();
+        SitemapLoader loader = new SitemapLoader(baseTopPage);
+        Sitemap sitemap = loader.parseCSV(targetFile);
+        return sitemap.getBaseTargetList();
     }
 
 }

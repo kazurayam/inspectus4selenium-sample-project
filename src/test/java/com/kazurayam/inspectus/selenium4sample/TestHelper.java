@@ -1,11 +1,8 @@
 package com.kazurayam.inspectus.selenium4sample;
 
-
+import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.materialstore.core.util.CopyDir;
 import com.kazurayam.materialstore.core.util.DeleteDir;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -18,7 +15,6 @@ import java.util.Objects;
 
 public class TestHelper {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestHelper.class);
     private static final Path currentWorkingDir;
     private static final Path testOutputDir;
     private static final Path fixturesDir;
@@ -78,15 +74,15 @@ public class TestHelper {
     /**
      * create the out directory for the testCase object to write output files
      */
-    public static Path createTestClassOutputDir(Object testCase) {
-        Path output = getTestOutputDir()
-                .resolve(testCase.getClass().getName());
+    public static Path createTestClassOutputDir(Class clazz) {
+        Objects.requireNonNull(clazz);
+        Path output = getTestOutputDir().resolve(clazz.getName());
         try {
             if (!Files.exists(output)) {
                 Files.createDirectories(output);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedInspectusException(e);
         }
         return output;
     }
@@ -95,7 +91,7 @@ public class TestHelper {
         try {
             return new URL(urlStr);
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedInspectusException(e);
         }
     }
 

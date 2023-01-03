@@ -1,2 +1,24 @@
 rootProject.name = 'inspectus4selenium-sample-project'
 
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            version('inspectus', '0.8.2')
+            library('inspectus', 'com.kazurayam', 'inspectus'). versionRef('inspectus')
+
+            version('junit5', '5.8.2')
+            library('junit-jupiter-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit5')
+            library('junit-jupiter-engine', 'org.junit.jupiter', 'junit-jupiter-engine').versionRef('junit5')
+
+            version('selenium4', '4.6.0')
+            library('selenium4', 'org.seleniumhq.selenium', 'selenium-java').versionRef('selenium4')
+
+            version('slf4j', '1.7.25')
+            library('slf4j-api', 'org.slf4j', 'slf4j-api').versionRef('slf4j')
+            library('slf4j-simple', 'org.slf4j', 'slf4j-simple').versionRef('slf4j')
+
+            version('webdrivermanager', '5.2.0')
+            library('webdrivermanager', 'io.github.bonigarcia', 'webdrivermanager').versionRef('webdrivermanager')
+        }
+    }
+}

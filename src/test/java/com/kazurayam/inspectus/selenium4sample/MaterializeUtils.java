@@ -1,4 +1,4 @@
-package com.kazurayam.inspectus.materialize;
+package com.kazurayam.inspectus.selenium4sample;
 
 import com.kazurayam.materialstore.core.filesystem.FileType;
 import com.kazurayam.materialstore.core.filesystem.JobName;
@@ -10,7 +10,6 @@ import com.kazurayam.materialstore.core.filesystem.Store;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-
 public class MaterializeUtils {
 
     /**

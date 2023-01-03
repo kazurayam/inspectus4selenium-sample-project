@@ -5,8 +5,7 @@ import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.fn.FnShootings;
-import com.kazurayam.inspectus.materialize.MaterializeUtils;
-import com.kazurayam.inspectus.selenium.WebDriverFormulas;
+import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.filesystem.JobName;
 import com.kazurayam.materialstore.core.filesystem.JobTimestamp;
 import com.kazurayam.materialstore.core.filesystem.Material;
@@ -29,6 +28,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -53,7 +53,7 @@ public class SeleniumShootingsTest {
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(this);
+        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumShootingsTest.class);
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
@@ -89,11 +89,11 @@ public class SeleniumShootingsTest {
      * then write 3 material objects into the store.
      * We will put some metadata on the material objects.
      */
-    private final Function<Parameters, Intermediates> fn = (p) -> {
-        // pick up the parameters
-        Store store = p.getStore();
-        JobName jobName = p.getJobName();
-        JobTimestamp jobTimestamp = p.getJobTimestamp();
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+        // pick up the parameter values
+        Store store = parameters.getStore();
+        JobName jobName = parameters.getJobName();
+        JobTimestamp jobTimestamp = parameters.getJobTimestamp();
         // visit the target
         String urlStr = "https://duckduckgo.com/";
         URL url = TestHelper.makeURL(urlStr);
@@ -133,6 +133,8 @@ public class SeleniumShootingsTest {
         assertNotEquals(Material.NULL_OBJECT, mt3);
 
         // done all, exit the Function returning a Intermediate object
-        return Intermediates.NULL_OBJECT;
+        return new Intermediates.Builder(intermediates).build();
     };
+
+
 }
