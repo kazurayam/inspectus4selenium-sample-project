@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -110,11 +111,11 @@ public class SeleniumChronosDiffTest {
      * visit the pages, take screenshot and HTML sources, save the materials into the store.
      * invoked by FnChronosDiff.execute() internally.
      */
-    private final Function<Parameters, Intermediates> fn = (p) -> {
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
         try {
-            Store store = p.getStore();
-            JobName jobName = p.getJobName();
-            JobTimestamp jobTimestamp = p.getJobTimestamp();
+            Store store = parameters.getStore();
+            JobName jobName = parameters.getJobName();
+            JobTimestamp jobTimestamp = parameters.getJobTimestamp();
             WebPageMaterializingFunctions functions =
                     new WebPageMaterializingFunctions(store, jobName, jobTimestamp);
 
@@ -189,7 +190,7 @@ public class SeleniumChronosDiffTest {
         } catch (Exception e) {
             throw new UncheckedInspectusException(e);
         }
-        return Intermediates.NULL_OBJECT;
+        return new Intermediates.Builder(intermediates).build();
     };
 
     private void takeScreenshotAndHTMLSource(WebPageMaterializingFunctions functions,

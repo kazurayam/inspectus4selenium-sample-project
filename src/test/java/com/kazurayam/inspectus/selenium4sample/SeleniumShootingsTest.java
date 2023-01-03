@@ -28,6 +28,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -88,11 +89,11 @@ public class SeleniumShootingsTest {
      * then write 3 material objects into the store.
      * We will put some metadata on the material objects.
      */
-    private final Function<Parameters, Intermediates> fn = (p) -> {
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
         // pick up the parameter values
-        Store store = p.getStore();
-        JobName jobName = p.getJobName();
-        JobTimestamp jobTimestamp = p.getJobTimestamp();
+        Store store = parameters.getStore();
+        JobName jobName = parameters.getJobName();
+        JobTimestamp jobTimestamp = parameters.getJobTimestamp();
         // visit the target
         String urlStr = "https://duckduckgo.com/";
         URL url = TestHelper.makeURL(urlStr);
@@ -132,6 +133,8 @@ public class SeleniumShootingsTest {
         assertNotEquals(Material.NULL_OBJECT, mt3);
 
         // done all, exit the Function returning a Intermediate object
-        return Intermediates.NULL_OBJECT;
+        return new Intermediates.Builder(intermediates).build();
     };
+
+
 }

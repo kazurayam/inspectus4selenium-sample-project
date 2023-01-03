@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -103,9 +104,9 @@ public class SeleniumTwinsDiffTest {
     /*
      * invoked by the FnTwinsDiff#execute() internally.
      */
-    private final Function<Parameters, Intermediates> fn = (p) -> {
-        assert p.getEnvironment() != Environment.NULL_OBJECT : "p.Environment() must not be null";
-        Environment env = p.getEnvironment();
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+        assert parameters.getEnvironment() != Environment.NULL_OBJECT : "parameters.Environment() must not be null";
+        Environment env = parameters.getEnvironment();
         Path dataDir = fixturesDir.resolve("FnTwinsDiffTest");
         try {
             List<Target> targetList;
@@ -124,18 +125,18 @@ public class SeleniumTwinsDiffTest {
                     throw new UncheckedInspectusException(
                             String.format("unknown Environment env=%s", env));
             }
-            JobTimestamp jobTimestamp = p.getJobTimestamp();
+            JobTimestamp jobTimestamp = parameters.getJobTimestamp();
             // process the targets
             for (int i = 0; i < targetList.size(); i++) {
                 Target target = targetList.get(i);
-                processTarget(p, jobTimestamp, target.getUrl(),
+                processTarget(parameters, jobTimestamp, target.getUrl(),
                         target.getHandle().getBy(),
                         env, String.format("%02d", i + 1));
             }
         } catch (MalformedURLException | InspectusException e) {
             throw new UncheckedInspectusException(e);
         }
-        return Intermediates.NULL_OBJECT;
+        return new Intermediates.Builder(intermediates).build();
     };
 
     private void processTarget(Parameters p, JobTimestamp jt,
