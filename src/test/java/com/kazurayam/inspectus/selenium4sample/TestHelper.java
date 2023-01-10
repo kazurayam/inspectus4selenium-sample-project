@@ -1,8 +1,8 @@
 package com.kazurayam.inspectus.selenium4sample;
 
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
-import com.kazurayam.materialstore.core.util.CopyDir;
-import com.kazurayam.materialstore.core.util.DeleteDir;
+import com.kazurayam.materialstore.util.CopyDir;
+import com.kazurayam.materialstore.util.DeleteDir;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
