@@ -68,6 +68,7 @@ public class SeleniumTwinsDiffTest {
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
+        opt.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
