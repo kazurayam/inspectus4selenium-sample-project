@@ -57,7 +57,7 @@ public class SeleniumChronosDiffTest {
     private WebDriverFormulas wdf;
 
     @BeforeAll
-    static void setupClass() { WebDriverManager.chromedriver().setup(); }
+    static void beforeAll() { WebDriverManager.chromedriver().setup(); }
 
     @BeforeEach
     public void setup() {

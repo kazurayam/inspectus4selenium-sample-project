@@ -116,11 +116,13 @@ public class SeleniumTwinsDiffTest {
                     targetList =
                             getTargetList(new URL("http://myadmin.kazurayam.com"),
                                     dataDir.resolve("targetList.csv"));
+                    assert targetList.size() > 0 : "targetList is empty";
                     break;
                 case "DevelopmentEnv":
                     targetList =
                             getTargetList(new URL("http://devadmin.kazurayam.com"),
                                     dataDir.resolve("targetList.csv"));
+                    assert targetList.size() > 0 : "targetList is empty";
                     break;
                 default:
                     throw new UncheckedInspectusException(
@@ -165,8 +167,12 @@ public class SeleniumTwinsDiffTest {
         //
         Target baseTopPage = Target.builder(baseTopPageURL).build();
         SitemapLoader loader = new SitemapLoader(baseTopPage);
+        loader.setWithHeaderRecord(false);
         Sitemap sitemap = loader.parseCSV(targetFile);
-        return sitemap.getBaseTargetList();
+        System.out.println("sitemap=" + sitemap.toJson(true));
+        List<Target> result = sitemap.getBaseTargetList();
+        assert result.size() > 0 : "the result is empty";
+        return result;
     }
 
 }
