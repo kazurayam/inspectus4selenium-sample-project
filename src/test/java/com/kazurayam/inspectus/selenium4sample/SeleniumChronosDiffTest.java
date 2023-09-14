@@ -57,7 +57,7 @@ public class SeleniumChronosDiffTest {
     private WebDriverFormulas wdf;
 
     @BeforeAll
-    static void setupClass() { WebDriverManager.chromedriver().setup(); }
+    static void beforeAll() { WebDriverManager.chromedriver().setup(); }
 
     @BeforeEach
     public void setup() {
@@ -65,6 +65,7 @@ public class SeleniumChronosDiffTest {
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
+        opt.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         // we will implicitly wait 5 seconds for the new page to load

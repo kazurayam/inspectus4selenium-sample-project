@@ -68,6 +68,7 @@ public class SeleniumTwinsDiffTest {
         //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
+        opt.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
@@ -115,11 +116,13 @@ public class SeleniumTwinsDiffTest {
                     targetList =
                             getTargetList(new URL("http://myadmin.kazurayam.com"),
                                     dataDir.resolve("targetList.csv"));
+                    assert targetList.size() > 0 : "targetList is empty";
                     break;
                 case "DevelopmentEnv":
                     targetList =
                             getTargetList(new URL("http://devadmin.kazurayam.com"),
                                     dataDir.resolve("targetList.csv"));
+                    assert targetList.size() > 0 : "targetList is empty";
                     break;
                 default:
                     throw new UncheckedInspectusException(
@@ -164,8 +167,12 @@ public class SeleniumTwinsDiffTest {
         //
         Target baseTopPage = Target.builder(baseTopPageURL).build();
         SitemapLoader loader = new SitemapLoader(baseTopPage);
+        loader.setWithHeaderRecord(false);
         Sitemap sitemap = loader.parseCSV(targetFile);
-        return sitemap.getBaseTargetList();
+        System.out.println("sitemap=" + sitemap.toJson(true));
+        List<Target> result = sitemap.getBaseTargetList();
+        assert result.size() > 0 : "the result is empty";
+        return result;
     }
 
 }
