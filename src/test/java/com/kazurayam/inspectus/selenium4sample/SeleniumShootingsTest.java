@@ -4,6 +4,7 @@ import com.kazurayam.inspectus.core.Inspectus;
 import com.kazurayam.inspectus.core.InspectusException;
 import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
+import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnShootings;
 import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.materialstore.core.JobName;
@@ -27,6 +28,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -101,7 +103,7 @@ public class SeleniumShootingsTest {
         JobTimestamp jobTimestamp = parameters.getJobTimestamp();
         // visit the target
         String urlStr = "https://duckduckgo.com/";
-        URL url = TestHelper.makeURL(urlStr);
+        URL url = makeURL(urlStr);
         driver.get(urlStr);
         String title = driver.getTitle();
         assertTrue(title.contains("DuckDuckGo"));
@@ -141,5 +143,11 @@ public class SeleniumShootingsTest {
         return new Intermediates.Builder(intermediates).build();
     };
 
-
+    private static URL makeURL(String urlStr) {
+        try {
+            return new URL(urlStr);
+        } catch (MalformedURLException e) {
+            throw new UncheckedInspectusException(e);
+        }
+    }
 }
