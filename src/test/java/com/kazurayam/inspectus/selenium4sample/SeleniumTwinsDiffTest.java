@@ -7,7 +7,6 @@ import com.kazurayam.inspectus.core.Intermediates;
 import com.kazurayam.inspectus.core.Parameters;
 import com.kazurayam.inspectus.core.UncheckedInspectusException;
 import com.kazurayam.inspectus.fn.FnTwinsDiff;
-import com.kazurayam.inspectus.materialize.discovery.Sitemap;
 import com.kazurayam.inspectus.materialize.discovery.SitemapLoader;
 import com.kazurayam.inspectus.materialize.discovery.Target;
 import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
@@ -29,15 +28,14 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -111,17 +109,20 @@ public class SeleniumTwinsDiffTest {
         Path dataDir = fixturesDir.resolve("FnTwinsDiffTest");
         try {
             List<Target> targetList;
+            Map<String, String> bindings;
             switch (env.toString()) {
                 case "ProductionEnv":
+                    bindings = Collections.singletonMap("URL_PREFIX", "http://myadmin.kazurayam.com");
                     targetList =
-                            getTargetList(new URL("http://myadmin.kazurayam.com"),
-                                    dataDir.resolve("targetList.csv"));
+                            SitemapLoader.loadSitemapJson(dataDir.resolve("sitemap.json"), bindings)
+                                    .getTargetList();
                     assert targetList.size() > 0 : "targetList is empty";
                     break;
                 case "DevelopmentEnv":
+                    bindings = Collections.singletonMap("URL_PREFIX", "http://devadmin.kazurayam.com");
                     targetList =
-                            getTargetList(new URL("http://devadmin.kazurayam.com"),
-                                    dataDir.resolve("targetList.csv"));
+                            SitemapLoader.loadSitemapJson(dataDir.resolve("sitemap.json"), bindings)
+                                    .getTargetList();
                     assert targetList.size() > 0 : "targetList is empty";
                     break;
                 default:
@@ -136,7 +137,7 @@ public class SeleniumTwinsDiffTest {
                         target.getHandle().getBy(),
                         env, String.format("%02d", i + 1));
             }
-        } catch (MalformedURLException | InspectusException e) {
+        } catch (InspectusException e) {
             throw new UncheckedInspectusException(e);
         }
         return new Intermediates.Builder(intermediates).build();
@@ -155,24 +156,6 @@ public class SeleniumTwinsDiffTest {
                 p.getStore(), p.getJobName(), jt, md);
         assertNotNull(mt);
         assertNotEquals(Material.NULL_OBJECT, mt);
-    }
-
-    /*
-     * read a CSV file located in the `src/test/fixtures/FnTwinsDiffTest` directory,
-     * construct a list of Target objects which contains URLs to materialize.
-     */
-    private List<Target> getTargetList(URL baseTopPageURL, Path targetFile)
-            throws InspectusException {
-        assert Files.exists(targetFile);
-        //
-        Target baseTopPage = Target.builder(baseTopPageURL).build();
-        SitemapLoader loader = new SitemapLoader(baseTopPage);
-        loader.setWithHeaderRecord(false);
-        Sitemap sitemap = loader.parseCSV(targetFile);
-        System.out.println("sitemap=" + sitemap.toJson(true));
-        List<Target> result = sitemap.getBaseTargetList();
-        assert result.size() > 0 : "the result is empty";
-        return result;
     }
 
 }
