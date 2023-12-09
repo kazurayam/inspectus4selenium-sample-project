@@ -13,6 +13,7 @@ import com.kazurayam.materialstore.core.Metadata;
 import com.kazurayam.materialstore.core.SortKeys;
 import com.kazurayam.materialstore.core.Store;
 import com.kazurayam.materialstore.core.Stores;
+import com.kazurayam.unittest.TestOutputOrganizer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,11 +26,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,26 +43,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class SeleniumShootingsTest {
 
-    private Path testClassOutputDir;
+    private static TestOutputOrganizer too =
+            TestOutputOrganizerFactory.create(SeleniumShootingsTest.class);
+    private static Path classOutputDirectory;
     private WebDriver driver;
     private WebDriverFormulas wdf;
 
     @BeforeAll
-    static void setupClass() {
+    static void setupClass() throws IOException {
+        too.cleanClassOutputDirectory();
+        classOutputDirectory = too.getClassOutputDirectory();
         WebDriverManager.chromedriver().setup();
     }
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumShootingsTest.class);
-        //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         opt.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(opt);
         driver.manage().window().setSize(new Dimension(1024, 1000));
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
-        //
+
         wdf = new WebDriverFormulas();
     }
 
@@ -72,9 +75,9 @@ public class SeleniumShootingsTest {
 
 
     @Test
-    void performShootings() throws InspectusException {
+    void test_performShootings() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
-                .store(Stores.newInstance(testClassOutputDir.resolve("store")))
+                .store(Stores.newInstance(classOutputDirectory.resolve("store")))
                 .jobName(new JobName("testMaterialize"))
                 .jobTimestamp(JobTimestamp.now())
                 .sortKeys(new SortKeys("step"))
@@ -90,7 +93,8 @@ public class SeleniumShootingsTest {
      * then write 3 material objects into the store.
      * We will put some metadata on the material objects.
      */
-    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn =
+            (parameters, intermediates) -> {
         // pick up the parameter values
         Store store = parameters.getStore();
         JobName jobName = parameters.getJobName();

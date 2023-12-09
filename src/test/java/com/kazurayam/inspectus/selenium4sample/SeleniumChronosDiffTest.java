@@ -16,6 +16,7 @@ import com.kazurayam.materialstore.core.MaterialstoreException;
 import com.kazurayam.materialstore.core.SortKeys;
 import com.kazurayam.materialstore.core.Store;
 import com.kazurayam.materialstore.core.Stores;
+import com.kazurayam.unittest.TestOutputOrganizer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,6 +32,7 @@ import org.openqa.selenium.support.ui.Select;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -38,7 +40,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Using Selenium open a browser to visit a web site,
@@ -51,18 +52,23 @@ import java.util.function.Function;
  */
 public class SeleniumChronosDiffTest {
 
-    private final Logger logger = LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
-    private Path testClassOutputDir;
+    private static final Logger logger =
+            LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
+    private static TestOutputOrganizer too =
+            TestOutputOrganizerFactory.create(SeleniumChronosDiffTest.class);
+    private static Path classOutputDir;
     private WebDriver driver;
     private WebDriverFormulas wdf;
 
     @BeforeAll
-    static void beforeAll() { WebDriverManager.chromedriver().setup(); }
+    static void beforeAll() throws IOException {
+        too.cleanClassOutputDirectory();
+        classOutputDir = too.getClassOutputDirectory();
+        WebDriverManager.chromedriver().setup();
+    }
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumChronosDiffTest.class);
-        //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         opt.addArguments("--remote-allow-origins=*");
@@ -78,11 +84,11 @@ public class SeleniumChronosDiffTest {
     public void tearDown() { driver.quit(); }
 
     @Test
-    public void performChronosDiff() throws InspectusException {
+    public void test_performChronosDiff() throws InspectusException {
         try {
             Parameters parameters = new Parameters.Builder()
-                    .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                    .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                    .store(Stores.newInstance(classOutputDir.resolve("store")))
+                    .backup(Stores.newInstance(classOutputDir.resolve("store-backup")))
                     .jobName(new JobName("performChronosDiff"))
                     .jobTimestamp(JobTimestamp.now())
                     .sortKeys(new SortKeys("step"))
@@ -95,8 +101,8 @@ public class SeleniumChronosDiffTest {
                 logger.warn("chronosDiff.execute() failed because the backup-store was empty. Will try again.");
                 // do it once more with new JobTimestamp
                 Parameters parameters = new Parameters.Builder()
-                        .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                        .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                        .store(Stores.newInstance(classOutputDir.resolve("store")))
+                        .backup(Stores.newInstance(classOutputDir.resolve("store-backup")))
                         .jobName(new JobName("performChronosDiff"))
                         .jobTimestamp(JobTimestamp.now())
                         .sortKeys(new SortKeys("step"))
@@ -112,7 +118,8 @@ public class SeleniumChronosDiffTest {
      * visit the pages, take screenshot and HTML sources, save the materials into the store.
      * invoked by FnChronosDiff.execute() internally.
      */
-    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn =
+            (parameters, intermediates) -> {
         try {
             Store store = parameters.getStore();
             JobName jobName = parameters.getJobName();

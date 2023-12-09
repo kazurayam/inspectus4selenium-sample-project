@@ -17,6 +17,7 @@ import com.kazurayam.materialstore.core.Metadata;
 import com.kazurayam.materialstore.core.SortKeys;
 import com.kazurayam.materialstore.core.Stores;
 import com.kazurayam.materialstore.core.metadata.IgnoreMetadataKeys;
+import com.kazurayam.unittest.TestOutputOrganizer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +29,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,21 +51,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class SeleniumTwinsDiffTest {
 
-    private Path testClassOutputDir;
+    private static TestOutputOrganizer too =
+            TestOutputOrganizerFactory.create(SeleniumTwinsDiffTest.class);
+    private static Path classOutputDir;
+    private static Path fixturesDir;
     private WebDriver driver;
     private WebDriverFormulas wdf;
-    private Path fixturesDir;
 
     @BeforeAll
-    static void setupClass() {
+    static void setupClass() throws IOException {
+        too.cleanClassOutputDirectory();
+        classOutputDir = too.getClassOutputDirectory();
+        fixturesDir = too.getProjectDir().resolve("src/test/fixtures");
         WebDriverManager.chromedriver().setup();
     }
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumTwinsDiffTest.class);
-        fixturesDir = Paths.get(".").resolve("src/test/fixtures");
-        //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         opt.addArguments("--remote-allow-origins=*");
@@ -80,9 +84,9 @@ public class SeleniumTwinsDiffTest {
     }
 
     @Test
-    public void performTwinsDiff() throws InspectusException {
+    public void test_performTwinsDiff() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
-                .store(Stores.newInstance(testClassOutputDir.resolve("store")))
+                .store(Stores.newInstance(classOutputDir.resolve("store")))
                 .jobName(new JobName("performTwinsDiff"))
                 .jobTimestamp(JobTimestamp.now())
                 .ignoreMetadataKeys(
