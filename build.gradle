@@ -18,6 +18,7 @@ dependencies {
     testImplementation libs.slf4j.simple
     testImplementation libs.webdrivermanager
     testImplementation libs.junit.jupiter.api
+    testImplementation libs.unittesthelper
     testRuntimeOnly libs.junit.jupiter.engine
 
     /*

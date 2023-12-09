@@ -12,10 +12,10 @@ import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.inspectus.materialize.selenium.WebPageMaterializingFunctions;
 import com.kazurayam.materialstore.core.JobName;
 import com.kazurayam.materialstore.core.JobTimestamp;
-import com.kazurayam.materialstore.core.MaterialstoreException;
 import com.kazurayam.materialstore.core.SortKeys;
 import com.kazurayam.materialstore.core.Store;
 import com.kazurayam.materialstore.core.Stores;
+import com.kazurayam.unittest.TestOutputOrganizer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,14 +31,13 @@ import org.openqa.selenium.support.ui.Select;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Using Selenium open a browser to visit a web site,
@@ -49,20 +48,25 @@ import java.util.function.Function;
  * compare the products of the previous run and the current run,
  * generates a diff information, and compile a HTML report.
  */
-public class SeleniumChronosDiffTest {
+public class SeleniumChronosDiffTest extends AbstractMaterializingTest {
 
-    private final Logger logger = LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
-    private Path testClassOutputDir;
+    private static final Logger logger =
+            LoggerFactory.getLogger(SeleniumChronosDiffTest.class);
+    private final static TestOutputOrganizer too =
+            TestOutputOrganizerFactory.create(SeleniumChronosDiffTest.class);
+    private static Path classOutputDir;
     private WebDriver driver;
     private WebDriverFormulas wdf;
 
     @BeforeAll
-    static void beforeAll() { WebDriverManager.chromedriver().setup(); }
+    static void beforeAll() throws IOException {
+        too.cleanClassOutputDirectory();
+        classOutputDir = too.getClassOutputDirectory();
+        WebDriverManager.chromedriver().setup();
+    }
 
     @BeforeEach
     public void setup() {
-        testClassOutputDir = TestHelper.createTestClassOutputDir(SeleniumChronosDiffTest.class);
-        //
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("headless");
         opt.addArguments("--remote-allow-origins=*");
@@ -78,11 +82,11 @@ public class SeleniumChronosDiffTest {
     public void tearDown() { driver.quit(); }
 
     @Test
-    public void performChronosDiff() throws InspectusException {
+    public void test_performChronosDiff() throws InspectusException {
         try {
             Parameters parameters = new Parameters.Builder()
-                    .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                    .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                    .store(Stores.newInstance(classOutputDir.resolve("store")))
+                    .backup(Stores.newInstance(classOutputDir.resolve("store-backup")))
                     .jobName(new JobName("performChronosDiff"))
                     .jobTimestamp(JobTimestamp.now())
                     .sortKeys(new SortKeys("step"))
@@ -95,8 +99,8 @@ public class SeleniumChronosDiffTest {
                 logger.warn("chronosDiff.execute() failed because the backup-store was empty. Will try again.");
                 // do it once more with new JobTimestamp
                 Parameters parameters = new Parameters.Builder()
-                        .store(Stores.newInstance(testClassOutputDir.resolve("store")))
-                        .backup(Stores.newInstance(testClassOutputDir.resolve("store-backup")))
+                        .store(Stores.newInstance(classOutputDir.resolve("store")))
+                        .backup(Stores.newInstance(classOutputDir.resolve("store-backup")))
                         .jobName(new JobName("performChronosDiff"))
                         .jobTimestamp(JobTimestamp.now())
                         .sortKeys(new SortKeys("step"))
@@ -112,7 +116,8 @@ public class SeleniumChronosDiffTest {
      * visit the pages, take screenshot and HTML sources, save the materials into the store.
      * invoked by FnChronosDiff.execute() internally.
      */
-    private final BiFunction<Parameters, Intermediates, Intermediates> fn = (parameters, intermediates) -> {
+    private final BiFunction<Parameters, Intermediates, Intermediates> fn =
+            (parameters, intermediates) -> {
         try {
             Store store = parameters.getStore();
             JobName jobName = parameters.getJobName();
@@ -129,8 +134,8 @@ public class SeleniumChronosDiffTest {
                             .build();
             wdf.navigateTo(driver, topPage.getUrl(), topPage.getHandle().getBy(), 10);
             // take a screenshot, save the HTML source
-            takeScreenshotAndHTMLSource(functions, driver, topPage,
-                    Collections.singletonMap("step", "01"));
+            storeEntirePageScreenshot(functions, driver, topPage, Collections.singletonMap("step", "01"));
+            storeHTMLSource(functions, driver, topPage, Collections.singletonMap("step", "01"));
             // we navigate to the next page (login) with wait for the next page to load
             wdf.navigateByClick(driver, anchorMakeAppointment.getBy(),
                     By.xpath("//input[@id='txt-username']"), 10);
@@ -146,8 +151,8 @@ public class SeleniumChronosDiffTest {
             String password = "ThisIsNotAPassword";
             driver.findElement(inputUsername).sendKeys(username);
             driver.findElement(inputPassword).sendKeys(password);
-            takeScreenshotAndHTMLSource(functions, driver, loginPage,
-                    Collections.singletonMap("step", "02"));
+            storeEntirePageScreenshot(functions, driver, loginPage, Collections.singletonMap("step", "02"));
+            storeHTMLSource(functions, driver, loginPage, Collections.singletonMap("step", "02"));
             // we will navigate to the appointment page by
             wdf.navigateByClick(driver, buttonLogin,
                     By.xpath("//select[@id='combo_facility']"), 10);
@@ -172,8 +177,8 @@ public class SeleniumChronosDiffTest {
             driver.findElement(inputVisitDate).sendKeys(visitDateStr);
             driver.findElement(inputVisitDate).sendKeys(Keys.chord(Keys.ENTER));
             driver.findElement(textareaComment).sendKeys("this is a comment");
-            takeScreenshotAndHTMLSource(functions, driver, appointmentPage,
-                    Collections.singletonMap("step", "03"));
+            storeEntirePageScreenshot(functions, driver, appointmentPage, Collections.singletonMap("step", "03"));
+            storeHTMLSource(functions, driver, appointmentPage, Collections.singletonMap("step", "03"));
             // we navigate to the summary page by
             wdf.navigateByClick(driver, buttonBookAppointment,
                     By.xpath("//a[text()='Go to Homepage']"), 10);
@@ -182,8 +187,8 @@ public class SeleniumChronosDiffTest {
             Handle anchorGoHome = new Handle(By.xpath("//a[text()='Go to Homepage']"));
             Target summaryPage =
                     Target.builder(driver.getCurrentUrl()).handle(anchorGoHome).build();
-            takeScreenshotAndHTMLSource(functions, driver, summaryPage,
-                    Collections.singletonMap("step", "04"));
+            storeEntirePageScreenshot(functions, driver, summaryPage, Collections.singletonMap("step", "04"));
+            storeHTMLSource(functions, driver, summaryPage, Collections.singletonMap("step", "04"));
             // we navigate to the Home
             wdf.navigateByClick(driver, anchorGoHome.getBy(),
                     By.xpath("//a[@id='btn-make-appointment']"), 10);
@@ -194,14 +199,5 @@ public class SeleniumChronosDiffTest {
         return new Intermediates.Builder(intermediates).build();
     };
 
-    private void takeScreenshotAndHTMLSource(WebPageMaterializingFunctions functions,
-                                             WebDriver driver,
-                                             Target target,
-                                             Map<String, String> attributes)
-            throws MaterialstoreException {
-        // take screenshot, save the image into the store
-        functions.storeEntirePageScreenshot.accept(driver, target, attributes);
-        // take HTML source, save the text into the store
-        functions.storeHTMLSource.accept(driver, target, attributes);
-    }
+
 }
