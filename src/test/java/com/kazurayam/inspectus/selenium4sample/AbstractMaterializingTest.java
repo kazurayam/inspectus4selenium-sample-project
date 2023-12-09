@@ -33,8 +33,9 @@ abstract class AbstractMaterializingTest {
     Material storeElementScreenshot(WebElementMaterializingFunctions functions,
                                     WebDriver driver,
                                     Target target,
-                                    Map<String, String> attributes,
-                                    By by) throws MaterialstoreException {
+                                    By by,
+                                    Map<String, String> attributes)
+            throws MaterialstoreException {
         return functions.storeElementScreenshot.accept(driver, target, attributes, by);
     }
 

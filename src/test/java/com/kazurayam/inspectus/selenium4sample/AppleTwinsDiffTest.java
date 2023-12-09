@@ -10,7 +10,7 @@ import com.kazurayam.inspectus.fn.FnTwinsDiff;
 import com.kazurayam.inspectus.materialize.discovery.SitemapLoader;
 import com.kazurayam.inspectus.materialize.discovery.Target;
 import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
-import com.kazurayam.inspectus.materialize.selenium.WebPageMaterializingFunctions;
+import com.kazurayam.inspectus.materialize.selenium.WebElementMaterializingFunctions;
 import com.kazurayam.materialstore.core.JobName;
 import com.kazurayam.materialstore.core.JobTimestamp;
 import com.kazurayam.materialstore.core.Material;
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -39,20 +40,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Using Selenium WebDriver, open a browser to visit a pair of
- * website (Environments). Each website contains
- * multiple URLs.
- * Take screenshots of 2 websites and compare the images
- * to compile a HTML report.
+ * Using Selenium WebDriver 4, visite 2 URLs
+ * - https://kazurayam.github.io/myApple
+ * - https://kazurayam.github.io/myApple-alt
+ *
+ * Will take screenshot of the img element and compare these 2 sites.
  */
-public class SeleniumTwinsDiffTest extends AbstractMaterializingTest {
+public class AppleTwinsDiffTest extends AbstractMaterializingTest {
 
     private static TestOutputOrganizer too =
-            TestOutputOrganizerFactory.create(SeleniumTwinsDiffTest.class);
+            TestOutputOrganizerFactory.create(AppleTwinsDiffTest.class);
     private static Path classOutputDir;
     private static Path fixturesDir;
     private WebDriver driver;
@@ -79,65 +79,64 @@ public class SeleniumTwinsDiffTest extends AbstractMaterializingTest {
     }
 
     @AfterEach
-    public void tearDown() {
-        driver.quit();
-    }
+    public void tearDown() { driver.quit(); }
 
     @Test
     public void test_performTwinsDiff() throws InspectusException {
         Parameters parameters = new Parameters.Builder()
                 .store(Stores.newInstance(classOutputDir.resolve("store")))
-                .jobName(new JobName("MyAdmin"))
+                .jobName(new JobName("myApple"))
                 .jobTimestamp(JobTimestamp.now())
                 .ignoreMetadataKeys(
                         new IgnoreMetadataKeys.Builder()
-                                .ignoreKey("URL.host")
-                                .build()
+                                .ignoreKeys("URL.host", "URL.path",
+                                        "URL.protocol", "URL.port",
+                                        "image-width", "image-height").build()
                 )
                 .sortKeys(new SortKeys("step"))
                 .build();
         Inspectus twinsDiff =
                 new FnTwinsDiff(fn,
-                        new Environment("ProductionEnv"),
-                        new Environment("DevelopmentEnv"));
+                        new Environment("Production"),
+                        new Environment("Development"));
         twinsDiff.execute(parameters);
     }
 
-
-    /*
-     * invoked by the FnTwinsDiff#execute() internally.
-     */
     private final BiFunction<Parameters, Intermediates, Intermediates> fn =
             (parameters, intermediates) -> {
         try {
             Store store = parameters.getStore();
             JobName jobName = parameters.getJobName();
             JobTimestamp jobTimestamp = parameters.getJobTimestamp();
-            WebPageMaterializingFunctions functions =
-                    new WebPageMaterializingFunctions(store, jobName, jobTimestamp);
+            WebElementMaterializingFunctions functions =
+                    new WebElementMaterializingFunctions(store, jobName, jobTimestamp);
 
             assert parameters.getEnvironment() != Environment.NULL_OBJECT :
                     "parameters.getEnvironment() must not return null";
             Environment env = parameters.getEnvironment();
 
-            Path dataDir = fixturesDir.resolve("FnTwinsDiffTest");
+            Path dataDir = fixturesDir.resolve("AppleTwinsDiffTest");
             List<Target> targetList;
             Map<String, String> bindings;
             switch (env.toString()) {
-                case "ProductionEnv":
-                    bindings = Collections.singletonMap("URL_PREFIX", "http://myadmin.kazurayam.com");
+                case "Production":
+                    bindings = Collections.singletonMap("URL_PREFIX",
+                            "https://kazurayam.github.io/myApple");
                     targetList =
                             SitemapLoader.loadSitemapJson(dataDir.resolve("sitemap.json"), bindings)
                                     .getTargetList();
                     assert !targetList.isEmpty() : "targetList is empty";
                     break;
-                case "DevelopmentEnv":
-                    bindings = Collections.singletonMap("URL_PREFIX", "http://devadmin.kazurayam.com");
+
+                case "Development":
+                    bindings = Collections.singletonMap("URL_PREFIX",
+                            "https://kazurayam.github.io/myApple-alt");
                     targetList =
                             SitemapLoader.loadSitemapJson(dataDir.resolve("sitemap.json"), bindings)
                                     .getTargetList();
                     assert !targetList.isEmpty() : "targetList is empty";
                     break;
+
                 default:
                     throw new UncheckedInspectusException(
                             String.format("unknown Environment env=%s", env));
@@ -149,8 +148,7 @@ public class SeleniumTwinsDiffTest extends AbstractMaterializingTest {
                 Map<String, String> attributes = new HashMap<>();
                 attributes.put("environment", env.toString());
                 attributes.put("step", String.format("%02d", i + 1));
-                Material mt = storeEntirePageScreenshot(functions, driver, target, attributes);
-                storeHTMLSource(functions, driver, target, attributes);
+                Material mt = storeElementScreenshot(functions, driver, target, By.cssSelector("img#apple"), attributes);
                 assertNotNull(mt);
             }
         } catch (MaterialstoreException | InspectusException e) {
@@ -158,6 +156,4 @@ public class SeleniumTwinsDiffTest extends AbstractMaterializingTest {
         }
         return new Intermediates.Builder(intermediates).build();
     };
-
-
 }

@@ -1,0 +1,32 @@
+{
+  "targetList": [
+    {
+      "url": "${URL_PREFIX}/page1.html",
+      "handle": "By.xpath: //img[@id\u003d\u0027apple\u0027]",
+      "attributes": {
+        "description": "original"
+      }
+    },
+    {
+      "url": "${URL_PREFIX}/page2.html",
+      "handle": "By.xpath: //img[@id\u003d\u0027apple\u0027]",
+      "attributes": {
+        "description": "resized"
+      }
+    },
+    {
+      "url": "${URL_PREFIX}/page3.html",
+      "handle": "By.xpath: //img[@id\u003d\u0027apple\u0027]",
+      "attributes": {
+        "description": "lorem ipsum"
+      }
+    },
+    {
+      "url": "${URL_PREFIX}/page4.html",
+      "handle": "By.xpath: //img[@id\u003d\u0027apple\u0027]",
+      "attributes": {
+        "description": "rotated"
+      }
+    }
+  ]
+}
