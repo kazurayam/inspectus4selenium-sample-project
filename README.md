@@ -12,16 +12,14 @@ and more. These libraries require you to have the following installed on you mac
 - Java 8 or newer
 - Gradle v7.6 or newer
 
-These libraries run with
+This has a lot of external dependencies (Selenium WebDriver 4, etc) that will be automatically resolved by Gradle as specified in the [build.gradle](https://github.com/kazurayam/inspectus4selenium-sample-project/blob/develop/build.gradle) file.
 
-- Selenium WebDriver 4
-
-The sample codes in this project shows you how to
+The sample codes in this project shows you how to:
 
 1. take screenshot of web pages and HTML elements.
-2. save the images into a database named "materialstore".
+2. save the images into an object-oriented database named *materialstore*.
 3. retrieve the images from the materialstore database, compare 2 to generate a diff image.
-4. compile a report that shows the bulk of screenshot images and diff images with metadata in a well-organized format.
+4. compile a HTML report that shows the bulk of screenshot images and diff images associated with metadata in a well-organized format.
 
 ### Apple Twins Diff
 
