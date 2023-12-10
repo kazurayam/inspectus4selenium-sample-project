@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.kazurayam'
-version '0.5.1'
+version '0.5.2'
 
 repositories {
     mavenCentral()
@@ -33,4 +33,13 @@ dependencies {
 
 tasks.withType(Test) {
     useJUnitPlatform()
+}
+
+task indextoc {
+    doLast {
+        exec {
+            workingDir './docs'
+            commandLine './adoc2md.sh', '-t', '-v', project.version
+        }
+    }
 }
