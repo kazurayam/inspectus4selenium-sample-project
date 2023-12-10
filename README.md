@@ -66,7 +66,7 @@ You can open the `myApple-yyyyMMdd_hhmmss.html` with any browser you like.
 
 Here I stored a shot of test output for demonstration.
 
-- [demo output](https://inspectus4selenium-sample-project/demo/store/myApple-20231210_213728.html)
+- [demo output](https://kazurayam.github.io/inspectus4selenium-sample-project/demo/store/myApple-20231210_213728.html)
 
 At first, you would see the list of comparisons in an accordion format.
 
