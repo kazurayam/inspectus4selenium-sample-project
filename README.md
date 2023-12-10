@@ -38,6 +38,7 @@ Please visit these 2 sites and have a look. You would find them quite similar. T
 
 ![Apple I bit](https://kazurayam.github.io/inspectus4selenium-sample-project/images/Apple_I_bit.png)
 
+
 There are small differences in the pages --- the apple is transformed: resized, rotated. I want to compare these silightly different apple images in this pair of web sites programatically.
 
 
@@ -62,4 +63,8 @@ $ tree -L 3 ./build/tmp/testOutput/
 ```
 
 You can open the `myApple-yyyyMMdd_hhmmss.html` with any browser you like.
+
+Here I stored a shot of test output for demonstration.
+
+- [demo output](https://inspectus4selenium-sample-project/demo/store/myApple-20231210_213728.html)
 
