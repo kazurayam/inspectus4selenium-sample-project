@@ -68,3 +68,18 @@ Here I stored a shot of test output for demonstration.
 
 - [demo output](https://inspectus4selenium-sample-project/demo/store/myApple-20231210_213728.html)
 
+At first, you would see the list of comparisons in an accordion format.
+
+![Top](https://kazurayam.github.io/inspectus4selenium-sample-project/images/AppleTwinsDiff_top.png)
+
+Please click the button labelled **Show Diff in Modal**. Then you will see the following Diff page:
+
+![Diff](https://kazurayam.github.io/inspectus4selenium-sample-project/images/AppleTwinsDiff_diff.png)
+
+This page shows a "carousel". By clicking the left side or the right side of the page you can slide to the Left and the Right:
+
+![Left](https://kazurayam.github.io/inspectus4selenium-sample-project/images/AppleTwinsDiff_left.png)
+
+![Right](https://kazurayam.github.io/inspectus4katalon-sample-project/images/AppleTwinsDiff_right.png)
+
+The left apple and the right apple look similar but different. Can you see how? Yes, it's rotated. diff image shows the different pixels painted in red.
