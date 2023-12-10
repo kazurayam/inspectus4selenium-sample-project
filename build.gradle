@@ -34,3 +34,12 @@ dependencies {
 tasks.withType(Test) {
     useJUnitPlatform()
 }
+
+task indextoc {
+    doLast {
+        exec {
+            workingDir './docs'
+            commandLine './adoc2md.sh', '-t', '-v', project.version
+        }
+    }
+}
