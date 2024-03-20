@@ -1,0 +1,19 @@
+{
+  "targetList": [
+    {
+      "url": "${URL_PREFIX}/index.html",
+      "handle": "By.xpath: //img[@alt\u003d\u0027umineko\u0027]",
+      "attributes": {}
+    },
+    {
+      "url": "${URL_PREFIX}/repositories.html",
+      "handle": "By.xpath: //footer",
+      "attributes": {}
+    },
+    {
+      "url": "${URL_PREFIX}/proverbs.html",
+      "handle": "By.xpath: //footer",
+      "attributes": {}
+    }
+  ]
+}

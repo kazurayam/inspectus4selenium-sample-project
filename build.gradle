@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.kazurayam'
-version '0.3.3'
+version '0.5.3'
 
 repositories {
     mavenCentral()
@@ -18,6 +18,7 @@ dependencies {
     testImplementation libs.slf4j.simple
     testImplementation libs.webdrivermanager
     testImplementation libs.junit.jupiter.api
+    testImplementation libs.unittesthelper
     testRuntimeOnly libs.junit.jupiter.engine
 
     /*
@@ -32,4 +33,13 @@ dependencies {
 
 tasks.withType(Test) {
     useJUnitPlatform()
+}
+
+task indextoc {
+    doLast {
+        exec {
+            workingDir './docs'
+            commandLine './adoc2md.sh', '-t', '-v', project.version
+        }
+    }
 }

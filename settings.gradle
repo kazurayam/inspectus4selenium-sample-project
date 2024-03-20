@@ -3,8 +3,11 @@ rootProject.name = 'inspectus4selenium-sample-project'
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            version('inspectus', '0.9.6')
+            version('inspectus', '0.11.3')
             library('inspectus', 'com.kazurayam', 'inspectus'). versionRef('inspectus')
+
+            version('unittesthelper', '0.3.0')
+            library('unittesthelper', 'com.kazurayam', 'unittest-helper').versionRef('unittesthelper')
 
             version('junit5', '5.8.2')
             library('junit-jupiter-api', 'org.junit.jupiter', 'junit-jupiter-api').versionRef('junit5')
@@ -17,7 +20,7 @@ dependencyResolutionManagement {
             library('slf4j-api', 'org.slf4j', 'slf4j-api').versionRef('slf4j')
             library('slf4j-simple', 'org.slf4j', 'slf4j-simple').versionRef('slf4j')
 
-            version('webdrivermanager', '5.5.3')
+            version('webdrivermanager', '5.7.0')
             library('webdrivermanager', 'io.github.bonigarcia', 'webdrivermanager').versionRef('webdrivermanager')
         }
     }
