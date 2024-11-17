@@ -57,7 +57,7 @@ public class SeleniumShootingsTest extends AbstractMaterializingTest {
     static void setupClass() throws IOException {
         too.cleanClassOutputDirectory();
         classOutputDirectory = too.getClassOutputDirectory();
-        WebDriverManager.chromedriver().setup();
+        WebDriverManager.chromedriver().clearDriverCache().setup();
     }
 
     @BeforeEach

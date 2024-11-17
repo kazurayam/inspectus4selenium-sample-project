@@ -62,7 +62,7 @@ public class SeleniumChronosDiffTest extends AbstractMaterializingTest {
     static void beforeAll() throws IOException {
         too.cleanClassOutputDirectory();
         classOutputDir = too.getClassOutputDirectory();
-        WebDriverManager.chromedriver().setup();
+        WebDriverManager.chromedriver().clearDriverCache().setup();
     }
 
     @BeforeEach

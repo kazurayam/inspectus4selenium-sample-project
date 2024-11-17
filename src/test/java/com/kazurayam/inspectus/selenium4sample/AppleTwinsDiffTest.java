@@ -43,7 +43,7 @@ import java.util.function.BiFunction;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Using Selenium WebDriver 4, visite 2 URLs
+ * Using Selenium WebDriver 4, visit 2 URLs
  * - https://kazurayam.github.io/myApple
  * - https://kazurayam.github.io/myApple-alt
  *
@@ -63,7 +63,7 @@ public class AppleTwinsDiffTest extends AbstractMaterializingTest {
         too.cleanClassOutputDirectory();
         classOutputDir = too.getClassOutputDirectory();
         fixturesDir = too.getProjectDir().resolve("src/test/fixtures");
-        WebDriverManager.chromedriver().setup();
+        WebDriverManager.chromedriver().clearDriverCache().setup();
     }
 
     @BeforeEach
