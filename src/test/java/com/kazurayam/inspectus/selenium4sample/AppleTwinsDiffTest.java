@@ -11,6 +11,7 @@ import com.kazurayam.inspectus.materialize.discovery.SitemapLoader;
 import com.kazurayam.inspectus.materialize.discovery.Target;
 import com.kazurayam.inspectus.materialize.selenium.WebDriverFormulas;
 import com.kazurayam.inspectus.materialize.selenium.WebElementMaterializingFunctions;
+import com.kazurayam.materialstore.core.DiffColor;
 import com.kazurayam.materialstore.core.JobName;
 import com.kazurayam.materialstore.core.JobTimestamp;
 import com.kazurayam.materialstore.core.Material;
@@ -31,6 +32,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -60,9 +62,8 @@ public class AppleTwinsDiffTest extends AbstractMaterializingTest {
 
     @BeforeAll
     static void setupClass() throws IOException {
-        too.cleanClassOutputDirectory();
-        classOutputDir = too.getClassOutputDirectory();
-        fixturesDir = too.getProjectDir().resolve("src/test/fixtures");
+        classOutputDir = too.cleanClassOutputDirectory();
+        fixturesDir = too.getProjectDirectory().resolve("src/test/fixtures");
         WebDriverManager.chromedriver().clearDriverCache().setup();
     }
 
@@ -94,6 +95,7 @@ public class AppleTwinsDiffTest extends AbstractMaterializingTest {
                                         "image-width", "image-height").build()
                 )
                 .sortKeys(new SortKeys("step"))
+                .withDiffColor(new DiffColor(Color.GRAY))
                 .build();
         Inspectus twinsDiff =
                 new FnTwinsDiff(fn,
