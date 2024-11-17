@@ -60,9 +60,8 @@ public class SeleniumTwinsDiffTest extends AbstractMaterializingTest {
 
     @BeforeAll
     static void setupClass() throws IOException {
-        too.cleanClassOutputDirectory();
-        classOutputDir = too.getClassOutputDirectory();
-        fixturesDir = too.getProjectDir().resolve("src/test/fixtures");
+        classOutputDir = too.cleanClassOutputDirectory();
+        fixturesDir = too.getProjectDirectory().resolve("src/test/fixtures");
         WebDriverManager.chromedriver().clearDriverCache().setup();
     }
 
