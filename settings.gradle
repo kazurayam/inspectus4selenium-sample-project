@@ -3,10 +3,10 @@ rootProject.name = 'inspectus4selenium-sample-project'
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            version('inspectus', '0.11.3')
+            version('inspectus', '0.12.3')
             library('inspectus', 'com.kazurayam', 'inspectus'). versionRef('inspectus')
 
-            version('unittesthelper', '0.3.0')
+            version('unittesthelper', '0.5.1')
             library('unittesthelper', 'com.kazurayam', 'unittest-helper').versionRef('unittesthelper')
 
             version('junit5', '5.8.2')
